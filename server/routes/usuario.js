@@ -4,14 +4,17 @@ const _ = require('underscore');
 const Usuario = require('../models/usuario');
 const app = express();
 
+//ruta encontrar usuario
 app.get('/usuario', function(req, res) {
 
+    //parametros de la consulta
     let desde = req.query.desde || 0;
     desde = Number(desde);
 
     let limite = req.query.limite || 5;
     limite = Number(limite);
 
+    //encuentra al usuario
     Usuario.find({}, 'nombre email role goole img')
         .limit(limite)
         .skip(desde)
@@ -23,6 +26,7 @@ app.get('/usuario', function(req, res) {
                 });
             }
 
+            //respuesta json
             Usuario.count({}, (err, conteo) => {
                 res.json({
                     ok: true,
@@ -34,8 +38,10 @@ app.get('/usuario', function(req, res) {
         });
 });
 
+//ruta agregar usuario
 app.post('/usuario', function(req, res) {
 
+    //parametros de las consultas
     let body = req.body;
 
     let usuario = new Usuario({
@@ -46,6 +52,7 @@ app.post('/usuario', function(req, res) {
         img: body.img
     });
 
+    //guarda al usuario si lo encuentra
     usuario.save((err, usuarioDB) => {
         if (err) {
             return res.status(400).json({
@@ -54,6 +61,7 @@ app.post('/usuario', function(req, res) {
             });
         }
 
+        //respuesta json
         res.json({
             ok: true,
             usuario: usuarioDB
@@ -64,15 +72,14 @@ app.post('/usuario', function(req, res) {
 
 });
 
+//ruta modificar usuario
 app.put('/usuario/:id', function(req, res) {
+
+    //parametros de la consultas
     let id = req.params.id
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
 
-    /* Solucion no eficiente 
-    delete body.password;
-    delete body.goole;
-    */
-
+    //actualiza al usuario si lo encuentra
     Usuario.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
         if (err) {
             return res.status(400).json({
@@ -80,7 +87,8 @@ app.put('/usuario/:id', function(req, res) {
                 err
             });
         }
-
+        
+        //respuesta json 
         res.json({
             ok: true,
             usuario: usuarioDB
@@ -88,9 +96,12 @@ app.put('/usuario/:id', function(req, res) {
     });
 });
 
+
+//ruta eliminar usuario
 app.delete('/usuario/:id', function(req, res) {
     let id = req.params.id;
 
+    //elimina al usuario si lo encuentra
     Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
         if (err) {
             return res.status(400).json({
@@ -99,6 +110,7 @@ app.delete('/usuario/:id', function(req, res) {
             });
         }
 
+        //respuesta json fallida
         if (usuarioBorrado === null) {
             return res.status(400).json({
                 ok: false,
@@ -108,6 +120,7 @@ app.delete('/usuario/:id', function(req, res) {
             });
         }
 
+        //respuesta json correcta
         res.json({
             ok: true,
             usuario: usuarioBorrado
